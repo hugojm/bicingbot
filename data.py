@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pandas as pd
 import networkx as nx
 from pandas import DataFrame
@@ -40,3 +41,9 @@ def main():
             connex()
         else if (accio == "/plotgraph"):
             plotgraph()
+=======
+def main():
+hujdshds
+
+njssndj
+>>>>>>> 1680a84fec370aeece46abc5e63baa0de2feaaba
