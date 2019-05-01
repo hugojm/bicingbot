@@ -19,3 +19,5 @@ def addressesTOcoordinates(addresses):
         return (location1.latitude, location1.longitude), (location2.latitude, location2.longitude)
     except:
         return None
+
+data()
