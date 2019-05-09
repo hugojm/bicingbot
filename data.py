@@ -24,12 +24,11 @@ def data():
     pos=nx.get_node_attributes(G,'pos')
     for nod in G.nodes():
         for nod2 in G.nodes():
-            pos=nx.get_node_attributes(G,'pos')
-            if (haversine(pos[nod],pos[nod2]) <= distance):
+            coord1 = (pos[nod][1],pos[nod][0])
+            coord2 = (pos[nod2][1],pos[nod2][0])
+            if (haversine(coord1,coord2) <= distance):
                 G.add_edge(nod,nod2)
-    print(G.number_of_nodes())
-    print(G.number_of_edges ())
-    print(haversine(pos[303],pos[338]))
+
     return G
     # pos = nx.get_node_attributes(G, 'pos')
     # nx.draw(G, pos, **options)
@@ -37,8 +36,9 @@ def data():
 
 def print_map(G):
     m = StaticMap(800, 800)
-    for n in list(G.nodes(data=True)):
-        marker = CircleMarker(n[1]['pos'], 'red', 6)
+    for n in G.nodes():
+        pos=nx.get_node_attributes(G,'pos')
+        marker = CircleMarker(pos[n], 'red', 6)
         m.add_marker(marker)
     for n2 in G.edges():
         pos=nx.get_node_attributes(G,'pos')
@@ -59,6 +59,10 @@ def addressesTOcoordinates(addresses):
                 location1.longitude), (location2.latitude, location2.longitude)
     except BaseException:
         return None
+
+def shortest_path(G):
+    print(nx.shortest_path(G, source=0, target=4))
+
 
 
 print_map(data())
