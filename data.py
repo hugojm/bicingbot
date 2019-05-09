@@ -20,21 +20,18 @@ def data():
     G = nx.Graph()
     for st in bicing.itertuples():
         G.add_node(st.Index, pos=(st.lon, st.lat))
+        for st2 in bicing.itertuples():
     return G
     # pos = nx.get_node_attributes(G, 'pos')
     # nx.draw(G, pos, **options)
     # plt.savefig("path.png")
 
 def print_map(G):
+    distance = input("Distance ")
     m = StaticMap(800, 800)
     for n in list(G.nodes(data=True)):
         marker = CircleMarker(n[1]['pos'], 'red', 4)
         m.add_marker(marker)
-        coord1 = n[1]['pos']
-        coord2 = n[2]['pos']
-        if ((haversine(coord1, coord2)) < d):
-            line = Line([coord1,coord2], '#D2322D', 4)
-            m.add_line(line)
     image = m.render()
     image.save('map.png')
 
