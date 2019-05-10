@@ -7,6 +7,7 @@ from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
 from jutge import read, read_line
 
+
 def data():
     distance = float(input("Distance "))
     dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
@@ -18,25 +19,26 @@ def data():
         G.add_node((st.lon, st.lat))
     for nod in G.nodes():
         for nod2 in G.nodes():
-            coord1 = (nod[1],nod[0])
-            coord2 = (nod2[1],nod2[0])
-            if (haversine(coord1,coord2) <= distance/1000 and haversine(coord1,coord2) != 0):
-                G.add_edge(nod,nod2,weight=float(haversine(coord1,coord2)/10))
+            coord1 = (nod[1], nod[0])
+            coord2 = (nod2[1], nod2[0])
+        if (haversine(coord1, coord2) <= distance /
+            1000 and haversine(coord1, coord2) != 0):
+            G.add_edge(nod, nod2, weight=float(haversine(coord1, coord2) / 10))
     return G
 
 
 def print_map(G):
     m = StaticMap(800, 800)
-    #diccionari with the position of the nodes
+    # diccionari with the position of the nodes
 
-    #print nodes on the map
+    # print nodes on the map
     for n in G.nodes():
         marker = CircleMarker(n, 'red', 6)
         m.add_marker(marker)
-    #print edges on the map
+    # print edges on the map
     for n2 in G.edges(data=True):
         print(n2[2]['weight'])
-        coordinates = [n2[0],n2[1]]
+        coordinates = [n2[0], n2[1]]
         line = Line(coordinates, 'blue', 1)
         m.add_line(line)
     image = m.render()
@@ -54,57 +56,69 @@ def addressesTOcoordinates(addresses):
     except BaseException:
         return None
 
+
 def route(G):
     print("Introdueix direccio: ")
     cami = read_line()
-    coord1,coord2 = addressesTOcoordinates(cami)
+    coord1, coord2 = addressesTOcoordinates(cami)
     found1 = False
     found2 = False
     for nod in G.nodes():
-        if nod == coord1: found1 = True
-        if nod == coord2: found2 = True
-        if (found1 and found2): break
+        if nod == coord1:
+            found1 = True
+        if nod == coord2:
+            found2 = True
+        if (found1 and found2):
+            break
     if (not found1):
         G.add_node(coord1)
         for nod2 in G.nodes():
-            inv = (coord1[1],coord1[0])
-            inv2 = (nod2[1],nod2[0])
-            G.add_edge(coord1,nod2,weight=float(haversine(inv,inv2)/4))
+            inv = (coord1[1], coord1[0])
+            inv2 = (nod2[1], nod2[0])
+            G.add_edge(coord1, nod2, weight=float(haversine(inv, inv2) / 4))
 
     if (not found2):
         G.add_node(coord2)
         for nod2 in G.nodes():
-            inv = (coord2[1],coord2[0])
-            inv2 = (nod2[1],nod2[0])
-            G.add_edge(coord2,nod2,weight=float(haversine(inv,inv2)/4))
+            inv = (coord2[1], coord2[0])
+            inv2 = (nod2[1], nod2[0])
+            G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
     m = StaticMap(800, 800)
-    #print nodes on the map
+    # print nodes on the map
     for n in G.nodes():
         marker = CircleMarker(n, 'red', 6)
         m.add_marker(marker)
-    for i in range(len(path)-1):
-        coordinates = [path[i], path[i+1]]
+    for i in range(len(path) - 1):
+        coordinates = [path[i], path[i + 1]]
         line = Line(coordinates, 'blue', 1)
         m.add_line(line)
     image = m.render()
     image.save('path.png')
     print("Map created")
 
+
 def main():
     G = data()
     accio = read(str)
     while accio is not None:
-        if (accio == "start"): print("Hello")
-        elif (accio == "authors"): authors()
-        elif (accio == "graph"): graph(G)
-        elif (accio == "nodes"): print(G.number_of_nodes())
-        elif (accio == "edges"): print(G.number_of_edges())
-        elif (accio == "components"): print(nx.number_connected_components(G))
-        elif (accio == "plotgraph"): plotgraph(G)
-        elif (accio == "route"): route(G)
+        if (accio == "start"):
+            print("Hello")
+        elif (accio == "authors"):
+            authors()
+        elif (accio == "graph"):
+            graph(G)
+        elif (accio == "nodes"):
+            print(G.number_of_nodes())
+        elif (accio == "edges"):
+            print(G.number_of_edges())
+        elif (accio == "components"):
+            print(nx.number_connected_components(G))
+        elif (accio == "plotgraph"):
+            plotgraph(G)
+        elif (accio == "route"):
+            route(G)
         accio = read(str)
-
 
 
 main()

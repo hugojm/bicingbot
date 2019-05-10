@@ -1,44 +1,23 @@
-<<<<<<< HEAD
-import pandas as pd
-import networkx as nx
-from pandas import DataFrame
-from haversine import haversine
-from geopy.geocoders import Nominatim
-
-def authors():
-    print("The authors of these fabulous project are:")
-    print("Hugo Jiménez, whose email adress is hugo.jimenez@est.fib.upc.edu")
-    print("Jaume Martínez, whose email adress is jaume.martinez.ara@est.fib.upc.edu")
-
-def graph(G):
-    n = read(int)
-    #the new graph will have distance n
-    # G = ... (the graph with distance n)
-
-# prints the connex components of G
-def connex(G):
-    ...
 
 
-# plots the map with all the bicing stations and their connections
-def plotgraph(G):
-    ...
+# importa l'API de Telegram
+import telegram
+from telegram.ext import Updater
+from telegram.ext import CommandHandler
 
-def main():
-    G = nx.Graph()
-    accio = read(string)
-    while accio is not None:
-        if (accio == "/start"):
-            print("Hello")
-        else if (accio == "/authors"):
-            authors()
-        else if (accio == "/graph"):
-            graph(G)
-        else if (accio == "/nodes"):
-            print(G.number_of_nodes())
-        else if (accio == "/edges"):
-            print(G.number_of_edges())
-        else if (accio == "/components"):
-            connex()
-        else if (accio == "/plotgraph"):
-            plotgraph()
+# defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
+def start(bot, update):
+    bot.send_message(chat_id=update.message.chat_id, text="Hola! Soc un bot bàsic.")
+
+# declara una constant amb el access token que llegeix de token.txt
+TOKEN = open('token.txt').read().strip()
+
+# crea objectes per treballar amb Telegram
+updater = Updater(token=TOKEN)
+dispatcher = updater.dispatcher
+
+# indica que quan el bot rebi la comanda /start s'executi la funció start
+dispatcher.add_handler(CommandHandler('start', start))
+
+# engega el bot
+updater.start_polling()
