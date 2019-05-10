@@ -8,12 +8,6 @@ from staticmap import StaticMap, CircleMarker, Line
 
 def data():
     distance = float(input("Distance "))
-    """options = {
-        'node_color': 'black',
-        'node_size': 10,
-        'width': 3,
-    }
-    """
     dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
     bicing = DataFrame.from_records(
         pd.read_json(dataset)['data']['stations'],
@@ -30,18 +24,18 @@ def data():
                 G.add_edge(nod,nod2)
 
     return G
-    # pos = nx.get_node_attributes(G, 'pos')
-    # nx.draw(G, pos, **options)
-    # plt.savefig("path.png")
+
 
 def print_map(G):
     m = StaticMap(800, 800)
+    #diccionari with the position of the nodes
+    pos=nx.get_node_attributes(G,'pos')
+    #print nodes on the map
     for n in G.nodes():
-        pos=nx.get_node_attributes(G,'pos')
         marker = CircleMarker(pos[n], 'red', 6)
         m.add_marker(marker)
+    #print edges on the map
     for n2 in G.edges():
-        pos=nx.get_node_attributes(G,'pos')
         coordinates = [pos[n2[0]],pos[n2[1]]]
         line = Line(coordinates, 'blue', 1)
         m.add_line(line)
@@ -61,8 +55,9 @@ def addressesTOcoordinates(addresses):
         return None
 
 def shortest_path(G):
-    print(nx.shortest_path(G, source=0, target=4))
+    print(nx.shortest_path(G, source = 1, target = 4))
 
 
 
 print_map(data())
+shortest_path(G)
