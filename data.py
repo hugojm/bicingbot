@@ -104,5 +104,5 @@ def Edges(G):
     return G.number_of_edges()
 
 def authors():
-    authors = str("Hugo Jiménez (hugo.jimenez@est.fib.upc.edu) and Jaume Martínez (jaume.martinez.ara@est.fib.upc.edu)")
+    authors = "Hugo Jiménez (hugo.jimenez@est.fib.upc.edu) and Jaume Martínez (jaume.martinez.ara@est.fib.upc.edu)"
     return authors
