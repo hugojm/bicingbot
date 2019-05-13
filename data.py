@@ -15,10 +15,12 @@ def data():
         pd.read_json(dataset)['data']['stations'],
         index='station_id')
     G = nx.Graph()
+    # add coordinates as nodes of the graph
     for st in bicing.itertuples():
         G.add_node((st.lon, st.lat))
     for nod in G.nodes():
         for nod2 in G.nodes():
+            # first latitude and then longitude to calculate haversine
             coord1 = (nod[1], nod[0])
             coord2 = (nod2[1], nod2[0])
         if (haversine(coord1, coord2) <= distance /
@@ -29,8 +31,6 @@ def data():
 
 def print_map(G):
     m = StaticMap(800, 800)
-    # diccionari with the position of the nodes
-
     # print nodes on the map
     for n in G.nodes():
         marker = CircleMarker(n, 'red', 6)
@@ -55,6 +55,22 @@ def addressesTOcoordinates(addresses):
                 location1.latitude), (location2.longitude, location2.latitude)
     except BaseException:
         return None
+
+def print_path(path,G):
+    m = StaticMap(800, 800)
+    # print nodes on the map
+    for n in G.nodes():
+        marker = CircleMarker(n, 'red', 6)
+        m.add_marker(marker)
+    for i in range(len(path) - 1):
+        coordinates = [path[i], path[i + 1]]
+        line = Line(coordinates, 'blue', 1)
+        m.add_line(line)
+    image = m.render()
+    image.save('path.png')
+    print("Map created")
+
+
 
 
 def route(G):
@@ -84,18 +100,8 @@ def route(G):
             inv2 = (nod2[1], nod2[0])
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
-    m = StaticMap(800, 800)
-    # print nodes on the map
-    for n in G.nodes():
-        marker = CircleMarker(n, 'red', 6)
-        m.add_marker(marker)
-    for i in range(len(path) - 1):
-        coordinates = [path[i], path[i + 1]]
-        line = Line(coordinates, 'blue', 1)
-        m.add_line(line)
-    image = m.render()
-    image.save('path.png')
-    print("Map created")
+    print_path(path,G)
+
 
 
 def main():
@@ -115,7 +121,7 @@ def main():
         elif (accio == "components"):
             print(nx.number_connected_components(G))
         elif (accio == "plotgraph"):
-            plotgraph(G)
+            print_map(G)
         elif (accio == "route"):
             route(G)
         accio = read(str)
