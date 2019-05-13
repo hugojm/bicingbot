@@ -11,7 +11,7 @@ def start(bot, update, user_data):
     bot.send_message(chat_id=update.message.chat_id, text="Hola! Benvingut al bicing_bot!")
 
 
-def graph(bot, update, user_data,args):
+def graph(bot, update, user_data, args):
     if (args):
         G = d.Graph(int(args[0]))
     else:
@@ -48,6 +48,11 @@ def connectivity(bot, update, user_data):
     components = d.components(user_data['graph'])
     bot.send_message(chat_id=update.message.chat_id, text=str(components))
 
+def authors(bot, update):
+    authors = d.authors()
+    bot.send_message(chat_id=update.message.chat_id, text=str(authors))
+
+
 # declara una constant amb el access token que llegeix de token.txt
 TOKEN = open('token.txt').read().strip()
 
@@ -64,6 +69,7 @@ dispatcher.add_handler(CommandHandler('route', route,pass_args=True))
 dispatcher.add_handler(CommandHandler('nodes', nodes,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('edges', edges,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', connectivity,pass_user_data=True))
+dispatcher.add_handler(CommandHandler('authors', authors))
 
 # engega el bot
 updater.start_polling()
