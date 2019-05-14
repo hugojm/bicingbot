@@ -20,7 +20,6 @@ def graph(bot, update, user_data,args):
     bot.send_message(chat_id=update.message.chat_id, text="Graph created 🚀🚀🚀🚀")
 
 
-
 def hora(bot, update):
     missatge = str(datetime.datetime.now())
     bot.send_message(chat_id=update.message.chat_id, text=missatge)
