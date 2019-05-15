@@ -4,12 +4,6 @@ from pandas import DataFrame
 from haversine import haversine
 from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-from jutge import read
->>>>>>> 31202b5302ef6d97030d22e67156d1a506f10587
 >>>>>>> 6f577e92e6689109f718216196f33fac46e28c6a
 
 

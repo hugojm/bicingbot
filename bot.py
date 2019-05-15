@@ -94,6 +94,7 @@ dispatcher.add_handler(CommandHandler('edges', edges,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', connectivity,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('authors', authors))
 dispatcher.add_handler(CommandHandler('help', help))
+dispatcher.add_handler(MessageHandler(Filters.location, where, pass_user_data=True))
 
 # engega el bot
 updater.start_polling()
