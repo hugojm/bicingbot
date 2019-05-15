@@ -44,7 +44,7 @@ def hora(bot, update):
 
 def plotgraph(bot,update,user_data):
     d.print_map(user_data['graph'])
-    bot.send_message(chat_id=update.message.chat_id, text="Creant mapa..🚲🚲🚲🚲🚲")
+    bot.send_message(chat_id=update.message.chat_id, text="Creant mapa...🚲🚲🚲🚲🚲")
     bot.send_photo(chat_id=update.message.chat_id, photo=open('map.png', 'rb'))
     bot.send_message(chat_id=update.message.chat_id, text="Mapa creat‼")
 
@@ -52,7 +52,7 @@ def plotgraph(bot,update,user_data):
 def route(bot,update,args,user_data):
     cami = " ".join(args)
     address1, address2 = cami.split(',')
-    bot.send_message(chat_id=update.message.chat_id, text=cami)
+    bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
     t = d.route(user_data['graph'],cami)
     bot.send_photo(chat_id=update.message.chat_id, photo=open('path.png', 'rb'))
     hour,min = hour_to_min(t)
