@@ -5,7 +5,7 @@ from haversine import haversine
 import matplotlib.pyplot as plt
 from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
-from jutge import read, read_line
+from jutge import read
 
 
 def Graph(distance=1000):
@@ -22,8 +22,12 @@ def Graph(distance=1000):
             # first latitude and then longitude to calculate haversine
             coord1 = (nod[1], nod[0])
             coord2 = (nod2[1], nod2[0])
-            if (haversine(coord1, coord2) <= float(distance/1000) and haversine(coord1, coord2) != 0):
-                G.add_edge(nod, nod2, weight=float(haversine(coord1, coord2) / 10))
+            if (haversine(coord1, coord2) <= float(distance / 1000)
+                    and haversine(coord1, coord2) != 0):
+                G.add_edge(
+                    nod, nod2, weight=float(
+                        haversine(
+                            coord1, coord2) / 10))
     return G
 
 
@@ -53,7 +57,8 @@ def addressesTOcoordinates(addresses):
     except BaseException:
         return None
 
-def print_path(path,G):
+
+def print_path(path, G):
     m = StaticMap(800, 800)
     # print nodes on the map
     for n in G.nodes():
@@ -67,7 +72,7 @@ def print_path(path,G):
     image.save('path.png')
 
 
-def route(G,cami):
+def route(G, cami):
     coord1, coord2 = addressesTOcoordinates(cami)
     found1 = False
     found2 = False
@@ -92,17 +97,20 @@ def route(G,cami):
             inv2 = (nod2[1], nod2[0])
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
-    print_path(path,G)
+    print_path(path, G)
+
 
 def components(G):
     return nx.number_connected_components(G)
 
+
 def Nodes(G):
     return G.number_of_nodes()
+
 
 def Edges(G):
     return G.number_of_edges()
 
 def authors():
-    authors = str("Hugo Jiménez (hugo.jimenez@est.fib.upc.edu) and Jaume Martínez (jaume.martinez.ara@est.fib.upc.edu)")
+    authors = "Hugo Jiménez (hugo.jimenez@est.fib.upc.edu) and Jaume Martínez (jaume.martinez.ara@est.fib.upc.edu)"
     return authors

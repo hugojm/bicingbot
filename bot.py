@@ -20,7 +20,6 @@ def graph(bot, update, user_data, args):
     bot.send_message(chat_id=update.message.chat_id, text="Graph created 🚀🚀🚀🚀")
 
 
-
 def hora(bot, update):
     missatge = str(datetime.datetime.now())
     bot.send_message(chat_id=update.message.chat_id, text=missatge)
@@ -48,7 +47,7 @@ def connectivity(bot, update, user_data):
     components = d.components(user_data['graph'])
     bot.send_message(chat_id=update.message.chat_id, text=str(components))
 
-def authors(bot, update):
+def authors(bot, update, user_data):
     authors = d.authors()
     bot.send_message(chat_id=update.message.chat_id, text=str(authors))
 
