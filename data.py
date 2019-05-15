@@ -2,10 +2,8 @@ import pandas as pd
 import networkx as nx
 from pandas import DataFrame
 from haversine import haversine
-import matplotlib.pyplot as plt
 from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
-from jutge import read, read_line
 
 
 def Graph(distance=1000):
@@ -71,6 +69,10 @@ def print_path(path, G):
     image = m.render()
     image.save('path.png')
 
+def time(G, coord1, coord2):
+    time = nx.dijkstra_path_length(G, coord1, coord2, weight='weight')
+    return time
+
 
 def route(G, cami):
     coord1, coord2 = addressesTOcoordinates(cami)
@@ -98,9 +100,10 @@ def route(G, cami):
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
     print_path(path, G)
+    t = time(G,coord1,coord2)
     if (not found1): G.remove_node(coord1)
     if (not found2): G.remove_node(coord2)
-
+    return t
 
 
 def components(G):

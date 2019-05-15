@@ -1,0 +1,7 @@
+staticmap==0.5.4
+python_telegram_bot==11.1.0
+haversine==2.0.0
+pandas==0.24.2
+networkx==2.2
+geopy==1.19.0
+telegram==0.0.1

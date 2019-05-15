@@ -13,6 +13,21 @@ def start(bot, update, user_data):
     user_data['graph'] = G
 
 def help(bot,update):
+    message='These are the commands which can be used: \n\
+/start: It will initialize the bot \n\
+/graph <distance>: It will create a graph whose edges distance are, at most, the given distance\n\
+/plotgraph: It will create and display a map with the nodes and the edges of the graph\n\
+/nodes: It will return the number of nodes of the graph\n\
+/edges: It will return the number of edges of the graph\n\
+/components: It will return the number of connected components of the graph\n\
+/route <origin, target>: Given the directions, it will return the shortest path.\n\
+/authors: It will return the name and the emails of the authors of this bot.'
+    bot.send_message(chat_id=update.message.chat_id, text=message)
+
+def hour_to_min(t):
+    hour = int(t//1)
+    min = int(((t-hour) * 60)+0.5)
+    return hour, min
 
 def graph(bot, update, user_data, args):
     if (args):
@@ -36,9 +51,13 @@ def plotgraph(bot,update,user_data):
 
 def route(bot,update,args,user_data):
     cami = " ".join(args)
+    address1, address2 = cami.split(',')
     bot.send_message(chat_id=update.message.chat_id, text=cami)
-    d.route(user_data['graph'],cami)
+    t = d.route(user_data['graph'],cami)
     bot.send_photo(chat_id=update.message.chat_id, photo=open('path.png', 'rb'))
+    hour,min = hour_to_min(t)
+    message = "Going from " + address1 + " to"+ address2+ " will take you " + str(hour) +" hour(s) "+ str(min) + " min(s)."
+    bot.send_message(chat_id=update.message.chat_id, text=message)
 
 def nodes(bot, update, user_data):
     nodes = d.Nodes(user_data['graph'])
@@ -74,6 +93,7 @@ dispatcher.add_handler(CommandHandler('nodes', nodes,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('edges', edges,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', connectivity,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('authors', authors))
+dispatcher.add_handler(CommandHandler('help', help))
 
 # engega el bot
 updater.start_polling()
