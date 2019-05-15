@@ -98,6 +98,9 @@ def route(G, cami):
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
     print_path(path, G)
+    if (not found1): G.remove_node(coord1)
+    if (not found2): G.remove_node(coord2)
+
 
 
 def components(G):

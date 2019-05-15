@@ -9,7 +9,10 @@ from telegram.ext import CommandHandler
 # defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
 def start(bot, update, user_data):
     bot.send_message(chat_id=update.message.chat_id, text="Hola! Benvingut al bicing_bot!")
+    G = d.Graph()
+    user_data['graph'] = G
 
+def help(bot,update):
 
 def graph(bot, update, user_data, args):
     if (args):
@@ -31,8 +34,10 @@ def plotgraph(bot,update,user_data):
     bot.send_message(chat_id=update.message.chat_id, text="Mapa creat‼")
 
 
-def route(bot,update,args):
-    d.route(Graph(),args[0])
+def route(bot,update,args,user_data):
+    cami = " ".join(args)
+    bot.send_message(chat_id=update.message.chat_id, text=cami)
+    d.route(user_data['graph'],cami)
     bot.send_photo(chat_id=update.message.chat_id, photo=open('path.png', 'rb'))
 
 def nodes(bot, update, user_data):
@@ -47,7 +52,7 @@ def connectivity(bot, update, user_data):
     components = d.components(user_data['graph'])
     bot.send_message(chat_id=update.message.chat_id, text=str(components))
 
-def authors(bot, update, user_data):
+def authors(bot, update):
     authors = d.authors()
     bot.send_message(chat_id=update.message.chat_id, text=str(authors))
 
@@ -64,11 +69,11 @@ dispatcher.add_handler(CommandHandler('start', start,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('graph', graph,pass_user_data=True,pass_args=True))
 dispatcher.add_handler(CommandHandler('hora', hora))
 dispatcher.add_handler(CommandHandler('plotgraph', plotgraph,pass_user_data=True))
-dispatcher.add_handler(CommandHandler('route', route,pass_args=True))
+dispatcher.add_handler(CommandHandler('route', route,pass_user_data=True,pass_args=True))
 dispatcher.add_handler(CommandHandler('nodes', nodes,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('edges', edges,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', connectivity,pass_user_data=True))
-dispatcher.add_handler(CommandHandler('authors', authors, pass_user_data=True))
+dispatcher.add_handler(CommandHandler('authors', authors))
 
 # engega el bot
 updater.start_polling()
