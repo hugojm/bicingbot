@@ -4,8 +4,11 @@ from pandas import DataFrame
 from haversine import haversine
 from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
+<<<<<<< HEAD
 >>>>>>> 6f577e92e6689109f718216196f33fac46e28c6a
 
+=======
+>>>>>>> b4a69f286fc214aff078fb6aef3a5f5dfa5627a2
 
 def Graph(distance=1000):
     dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
@@ -101,13 +104,10 @@ def route(G, cami):
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
     print_path(path, G)
-<<<<<<< HEAD
     t = time(G,coord1,coord2)
     if (not found1): G.remove_node(coord1)
     if (not found2): G.remove_node(coord2)
     return t
-=======
->>>>>>> 31202b5302ef6d97030d22e67156d1a506f10587
 
 
 def components(G):
