@@ -32,10 +32,12 @@ def hour_to_min(t):
 def graph(bot, update, user_data, args):
     if (args):
         G = d.Graph(int(args[0]))
+        bot.send_message(chat_id=update.message.chat_id, text="Graph created with distance " + str(args[0])) + "!"
     else:
         G = d.Graph()
+        bot.send_message(chat_id=update.message.chat_id, text="Since no distance was received, the graph by default, which has been created, has distance 1000")
     user_data['graph'] = G
-    bot.send_message(chat_id=update.message.chat_id, text="Graph created 🚀🚀🚀🚀")
+
 
 
 def hora(bot, update):
