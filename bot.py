@@ -8,7 +8,7 @@ from telegram.ext import CommandHandler
 
 # defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
 def start(bot, update, user_data):
-    bot.send_message(chat_id=update.message.chat_id, text="Hola! Benvingut al bicing_bot!")
+    bot.send_message(chat_id=update.message.chat_id, text="Hey! What can I do for you?")
     G = d.Graph()
     user_data['graph'] = G
 
