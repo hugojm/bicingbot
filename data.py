@@ -4,11 +4,6 @@ from pandas import DataFrame
 from haversine import haversine
 from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
-<<<<<<< HEAD
->>>>>>> 6f577e92e6689109f718216196f33fac46e28c6a
-
-=======
->>>>>>> b4a69f286fc214aff078fb6aef3a5f5dfa5627a2
 
 def Graph(distance=1000):
     dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
@@ -33,7 +28,7 @@ def Graph(distance=1000):
     return G
 
 
-def print_map(G):
+def print_map(G,filename):
     m = StaticMap(800, 800)
     # print nodes on the map
     for n in G.nodes():
@@ -45,7 +40,7 @@ def print_map(G):
         line = Line(coordinates, 'blue', 1)
         m.add_line(line)
     image = m.render()
-    image.save('map.png')
+    image.save(filename)
 
 
 def addressesTOcoordinates(addresses):
@@ -60,25 +55,26 @@ def addressesTOcoordinates(addresses):
         return None
 
 
-def print_path(path, G):
+def print_path(path, G, file):
     m = StaticMap(800, 800)
     # print nodes on the map
-    for n in G.nodes():
-        marker = CircleMarker(n, 'red', 6)
-        m.add_marker(marker)
     for i in range(len(path) - 1):
+        marker = CircleMarker(path[i], 'red', 6)
+        m.add_marker(marker)
         coordinates = [path[i], path[i + 1]]
         line = Line(coordinates, 'blue', 1)
         m.add_line(line)
+    marker = CircleMarker(path[len(path)-1], 'red', 6)
+    m.add_marker(marker)
     image = m.render()
-    image.save('path.png')
+    image.save(file)
 
 def time(G, coord1, coord2):
     time = nx.dijkstra_path_length(G, coord1, coord2, weight='weight')
     return time
 
 
-def route(G, cami):
+def route(G, cami,filename):
     coord1, coord2 = addressesTOcoordinates(cami)
     found1 = False
     found2 = False
@@ -102,8 +98,9 @@ def route(G, cami):
             inv = (coord2[1], coord2[0])
             inv2 = (nod2[1], nod2[0])
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
+            
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
-    print_path(path, G)
+    print_path(path, G,filename)
     t = time(G,coord1,coord2)
     if (not found1): G.remove_node(coord1)
     if (not found2): G.remove_node(coord2)

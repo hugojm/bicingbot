@@ -8,7 +8,8 @@ from telegram.ext import CommandHandler
 
 # defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
 def start(bot, update, user_data):
-    bot.send_message(chat_id=update.message.chat_id, text="Hey! What can I do for you?")
+    name = update.message.chat.first_name
+    bot.send_message(chat_id=update.message.chat_id, text="Hey " + name + "! What can I do for you?")
     G = d.Graph()
     user_data['graph'] = G
 
@@ -45,18 +46,22 @@ def hora(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text=missatge)
 
 def plotgraph(bot,update,user_data):
-    d.print_map(user_data['graph'])
+    filename = str(update.message.chat.username)+'.png'
+    d.print_map(user_data['graph'],filename)
     bot.send_message(chat_id=update.message.chat_id, text="Creant mapa...🚲🚲🚲🚲🚲")
-    bot.send_photo(chat_id=update.message.chat_id, photo=open('map.png', 'rb'))
+    bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
     bot.send_message(chat_id=update.message.chat_id, text="Mapa creat‼")
+    os.remove(filename)
 
 
 def route(bot,update,args,user_data):
+    filename = str(update.message.chat.username)+'_path.png'
     cami = " ".join(args)
     address1, address2 = cami.split(',')
     bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
-    t = d.route(user_data['graph'],cami)
-    bot.send_photo(chat_id=update.message.chat_id, photo=open('path.png', 'rb'))
+    t = d.route(user_data['graph'],cami,filename)
+    bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
+    os.remove(filename)
     hour,min = hour_to_min(t)
     message = "Going from " + address1 + " to"+ address2+ " will take you " + str(hour) +" hour(s) "+ str(min) + " min(s)."
     bot.send_message(chat_id=update.message.chat_id, text=message)
@@ -96,7 +101,7 @@ dispatcher.add_handler(CommandHandler('edges', edges,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', connectivity,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('authors', authors))
 dispatcher.add_handler(CommandHandler('help', help))
-dispatcher.add_handler(MessageHandler(Filters.location, where, pass_user_data=True))
+#dispatcher.add_handler(MessageHandler(Filters.location, where, pass_user_data=True))
 
 # engega el bot
 updater.start_polling()
