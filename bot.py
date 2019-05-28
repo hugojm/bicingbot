@@ -5,6 +5,10 @@ import telegram
 import data as d
 from telegram.ext import Updater
 from telegram.ext import CommandHandler
+from telegram.ext import MessageHandler
+from telegram.ext import Filters
+from geopy.geocoders import Nominatim
+import os
 
 # defineix una funció que saluda i que s'executarà quan el bot rebi el missatge /start
 def start(bot, update, user_data):
@@ -53,18 +57,48 @@ def plotgraph(bot,update,user_data):
     bot.send_message(chat_id=update.message.chat_id, text="Mapa creat‼")
     os.remove(filename)
 
+def addressesTOcoordinates(addresses):
+    try:
+        geolocator = Nominatim(user_agent="bicing_bot")
+        address1, address2 = addresses.split(',')
+        location1 = geolocator.geocode(address1 + ', Barcelona')
+        location2 = geolocator.geocode(address2 + ', Barcelona')
+        return (location1.longitude,
+                location1.latitude), (location2.longitude, location2.latitude)
+    except BaseException:
+        return None
+
+def addressTOcoordinate(address):
+    try:
+        geolocator = Nominatim(user_agent="bicing_bot")
+        location1 = geolocator.geocode(address + ', Barcelona')
+        return (location1.longitude,
+                location1.latitude)
+    except BaseException:
+        return None
 
 def route(bot,update,args,user_data):
-    filename = str(update.message.chat.username)+'_path.png'
-    cami = " ".join(args)
-    address1, address2 = cami.split(',')
-    bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
-    t = d.route(user_data['graph'],cami,filename)
-    bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
-    os.remove(filename)
-    hour,min = hour_to_min(t)
-    message = "Going from " + address1 + " to"+ address2+ " will take you " + str(hour) +" hour(s) "+ str(min) + " min(s)."
-    bot.send_message(chat_id=update.message.chat_id, text=message)
+    if (len(args) <= 4):
+        cami = " ".join(args)
+        coord2 = addressTOcoordinate(cami)
+        filename = str(update.message.chat.username)+'_path.png'
+        bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
+        t = d.route(user_data['graph'],(user_data['lon'],user_data['lat']),coord2,filename)
+        bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
+        os.remove(filename)
+        hour,min = hour_to_min(t)
+    if (len(args) > 4):
+        filename = str(update.message.chat.username)+'_path.png'
+        cami = " ".join(args)
+        address1, address2 = cami.split(',')
+        coord1, coord2 = addressesTOcoordinates(cami)
+        bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
+        t = d.route(user_data['graph'],coord1,coord2,filename)
+        bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
+        os.remove(filename)
+        hour,min = hour_to_min(t)
+        message = "Going from " + address1 + " to"+ address2+ " will take you " + str(hour) +" hour(s) "+ str(min) + " min(s)."
+        bot.send_message(chat_id=update.message.chat_id, text=message)
 
 def nodes(bot, update, user_data):
     nodes = d.Nodes(user_data['graph'])
@@ -82,6 +116,26 @@ def authors(bot, update, user_data):
     authors = d.authors()
     bot.send_message(chat_id=update.message.chat_id, text=str(authors))
 
+def distribute(bot, update, args):
+    requiredBikes, requiredDocks = int(args[0]) , int(args[1])
+    flowCost, flowDict, G = d.bicing_flow(0.6, requiredBikes, requiredDocks)
+    message = "The total cost of transferring bikes is " + str(flowCost/1000) + " km."
+    bot.send_message(chat_id=update.message.chat_id, text=str(message))
+    for src in flowDict:
+        if src[0] != 'g': continue
+        idx_src = int(src[1:])
+        for dst, b in flowDict[src].items():
+            if dst[0] == 'g' and b > 0:
+                idx_dst = int(dst[1:])
+                line = str(idx_src) + " -> " + str(idx_dst) + " " + str(b) + " bikes, distance " + str(G.edges[src, dst]['weight'])
+                bot.send_message(chat_id=update.message.chat_id, text=str(line))
+
+def unknown(bot,update):
+    bot.send_message(chat_id=update.message.chat_id, text="No command found")
+
+def where(bot, update, user_data):
+    user_data['lat'], user_data['lon'] = update.message.location.latitude, update.message.location.longitude
+    bot.send_message(chat_id=update.message.chat_id, text='Ets a les coordenades %f %f' % (user_data['lat'], user_data['lon']))
 
 # declara una constant amb el access token que llegeix de token.txt
 TOKEN = open('token.txt').read().strip()
@@ -101,7 +155,9 @@ dispatcher.add_handler(CommandHandler('edges', edges,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('components', connectivity,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('authors', authors))
 dispatcher.add_handler(CommandHandler('help', help))
-#dispatcher.add_handler(MessageHandler(Filters.location, where, pass_user_data=True))
+dispatcher.add_handler(CommandHandler('distribute', distribute, pass_args=True))
+dispatcher.add_handler(MessageHandler(Filters.command, unknown))
+dispatcher.add_handler(MessageHandler(Filters.location, where, pass_user_data=True))
 
 # engega el bot
 updater.start_polling()

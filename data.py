@@ -1,9 +1,12 @@
 import pandas as pd
 import networkx as nx
+import itertools as it
 from pandas import DataFrame
 from haversine import haversine
 from staticmap import StaticMap, CircleMarker, Line
 from geopy.geocoders import Nominatim
+from IPython.display import display
+from PIL import Image
 
 def Graph(distance=1000):
     dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
@@ -11,7 +14,7 @@ def Graph(distance=1000):
         pd.read_json(dataset)['data']['stations'],
         index='station_id')
     G = nx.Graph()
-    # add coordinates as nodes of the graph
+    # add coordinates as    nodes of the graph
     for st in bicing.itertuples():
         G.add_node((st.lon, st.lat))
     for nod in G.nodes():
@@ -43,16 +46,7 @@ def print_map(G,filename):
     image.save(filename)
 
 
-def addressesTOcoordinates(addresses):
-    try:
-        geolocator = Nominatim(user_agent="bicing_bot")
-        address1, address2 = addresses.split(',')
-        location1 = geolocator.geocode(address1 + ', Barcelona')
-        location2 = geolocator.geocode(address2 + ', Barcelona')
-        return (location1.longitude,
-                location1.latitude), (location2.longitude, location2.latitude)
-    except BaseException:
-        return None
+
 
 
 def print_path(path, G, file):
@@ -74,8 +68,7 @@ def time(G, coord1, coord2):
     return time
 
 
-def route(G, cami,filename):
-    coord1, coord2 = addressesTOcoordinates(cami)
+def route(G, coord1,coord2,filename):
     found1 = False
     found2 = False
     for nod in G.nodes():
@@ -98,7 +91,7 @@ def route(G, cami,filename):
             inv = (coord2[1], coord2[0])
             inv2 = (nod2[1], nod2[0])
             G.add_edge(coord2, nod2, weight=float(haversine(inv, inv2) / 4))
-            
+
     path = nx.dijkstra_path(G, coord1, coord2, weight='weight')
     print_path(path, G,filename)
     t = time(G,coord1,coord2)
@@ -106,6 +99,96 @@ def route(G, cami,filename):
     if (not found2): G.remove_node(coord2)
     return t
 
+def data_acquisition():
+    url_info = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information'
+    url_status = 'https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_status'
+    stations = DataFrame.from_records(pd.read_json(url_info)['data']['stations'], index='station_id')
+    bikes = DataFrame.from_records(pd.read_json(url_status)['data']['stations'], index='station_id')
+    nbikes = 'num_bikes_available'
+    ndocks = 'num_docks_available'
+    bikes = bikes[[nbikes, ndocks]] # We only select the interesting columns
+    TotalBikes = bikes[nbikes].sum()
+    TotalDocks = bikes[ndocks].sum()
+    return stations, bikes, nbikes, ndocks, TotalBikes, TotalDocks
+
+
+def digraph(bikes, requiredBikes, requiredDocks, stations, radius):
+    G = nx.DiGraph()
+    G.add_node('TOP',demand=0) # The green node
+    demand = 0
+
+    for st in bikes.itertuples():
+        idx = st.Index
+        stridx = str(idx)
+
+        # The blue (s), black (g) and red (t) nodes of the graph
+        s_idx, g_idx, t_idx = 's'+stridx, 'g'+stridx, 't'+stridx
+        G.add_node(g_idx)
+        G.add_node(s_idx)
+        G.add_node(t_idx)
+
+        b, d = st.num_bikes_available, st.num_docks_available
+        req_bikes = max(0, requiredBikes - b)
+        req_docks = max(0, requiredDocks - d)
+
+
+        G.add_edge('TOP', s_idx)
+        G.add_edge(t_idx, 'TOP')
+        G.add_edge(s_idx, g_idx,capacity=max(0,b-requiredBikes))
+        G.add_edge(g_idx, t_idx,capacity=max(0,d-requiredDocks))
+
+        if req_bikes > 0:
+            demand += req_bikes
+            G.nodes[t_idx]['demand'] = req_bikes
+
+        elif req_docks > 0:
+            demand -= req_docks
+            G.nodes[s_idx]['demand'] = -req_docks
+
+    G.nodes['TOP']['demand'] =  -demand
+    for idx1, idx2 in it.combinations(stations.index.values, 2):
+        coord1 = (stations.at[idx1, 'lat'], stations.at[idx1, 'lon'])
+        coord2 = (stations.at[idx2, 'lat'], stations.at[idx2, 'lon'])
+        dist = haversine(coord1, coord2)
+        if dist <= radius:
+            dist = int(dist*1000)
+            # The edges must be bidirectional: g_idx1 <--> g_idx2
+            G.add_edge('g'+str(idx1), 'g'+str(idx2), weight=dist)
+            G.add_edge('g'+str(idx2), 'g'+str(idx1), weight=dist)
+
+    return G
+
+def bicing_flow(radius = 0.6, requiredBikes =4, requiredDocks=3):
+    stations, bikes, nbikes, ndocks, TotalBikes, TotalDocks = data_acquisition()
+    G = digraph(bikes, requiredBikes, requiredDocks, stations, radius)
+    err = False
+    try:
+        flowCost, flowDict = nx.network_simplex(G)
+
+    except nx.NetworkXUnfeasible:
+        err = True
+        message = "No solution could be found"
+        #return message
+
+    except:
+        err = True
+        message = "Fatal error: Incorrect graph model"
+        #return message
+
+    if not err:
+        # We update the status of the stations according to the calculated transportation of bicycles
+        for src in flowDict:
+            if src[0] != 'g': continue
+            idx_src = int(src[1:])
+            for dst, b in flowDict[src].items():
+                if dst[0] == 'g' and b > 0:
+                    idx_dst = int(dst[1:])
+                    #print(idx_src, "->", idx_dst, " ", b, "bikes, distance", G.edges[src, dst]['weight'])
+                    bikes.at[idx_src, nbikes] -= b
+                    bikes.at[idx_dst, nbikes] += b
+                    bikes.at[idx_src, ndocks] += b
+                    bikes.at[idx_dst, ndocks] -= b
+    return flowCost, flowDict,G
 
 def components(G):
     return nx.number_connected_components(G)
