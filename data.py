@@ -8,6 +8,87 @@ from geopy.geocoders import Nominatim
 from IPython.display import display
 from PIL import Image
 
+
+def bbox(G):
+    #lat y [1]
+    #lon x [0]
+    H = list(G.nodes())
+    maxx, maxy = H[0]
+    minx, miny = H[0]
+    for nodes in G.nodes():
+        if (nodes[0] > maxx):
+            maxx = nodes[0]
+        if (nodes[0] < minx):
+            minx = nodes[0]
+        if (nodes[1] > maxy):
+            maxy = nodes[1]
+        if (nodes[1] < miny):
+            miny = nodes[1]
+    return minx,miny,maxy,maxx
+
+
+def CreateGraph(dist = 1000):
+    dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
+    bicing = DataFrame.from_records(
+        pd.read_json(dataset)['data']['stations'],
+        index='station_id')
+    G = nx.Graph()
+
+    for st in bicing.itertuples():
+        G.add_node((st.lon, st.lat))
+
+    minx,miny,maxy, maxx = bbox(G)
+
+    width = haversine((minx,miny),(maxx,miny))
+    height = haversine((minx,miny),(minx,maxy))
+
+    columns = int((width // (dist/1000.0)) +1)
+    rows = int((height // (dist/1000.0)) +1)
+    # x [0] lon
+    # y [1] lat
+    matriz = [[[]] * columns for i in range(rows)]
+    for node in G.nodes():
+        y = int(haversine((minx,node[1]),node)/dist)
+        x = int(haversine((maxy,node[0]),node)/dist)
+        matriz[x][y].append(node)
+
+    for i in range(rows):
+        for j in range(columns):
+            for node in matriz[i][j]:
+                for node_comp in matriz[i][j]: #abajo
+                    distance = haversine((node[1],node[0]),(node_comp[1], node_comp[0]))
+                    if (distance <= dist/1000.0):
+                        G.add_edge(node, node_comp,weight=float(distance/10))
+                if (i+1 < rows):
+                    for node_comp in matriz[i+1][j]: #abajo
+                        distance = haversine((node[1],node[0]),(node_comp[1], node_comp[0]))
+                        if (distance <= dist/1000.0):
+                            G.add_edge(node, node_comp,weight=float(distance/10))
+                if (i+1 < rows and j+1 < columns):
+                    for node_comp in matriz[i+1][j+1]: #abajo derecha
+                        distance = haversine((node[1],node[0]),(node_comp[1], node_comp[0]))
+                        if (distance <= dist/1000.0):
+                            G.add_edge(node, node_comp,weight=float(distance/10))
+                if (j+1 < columns):
+                    for node_comp in matriz[i][j+1]: #derecha
+                        distance = haversine((node[1],node[0]),(node_comp[1], node_comp[0]))
+                        if (distance <= dist/1000.0):
+                            G.add_edge(node, node_comp,weight=float(distance/10))
+                if (i+1 < rows and j-1 >= 0):
+                    for node_comp in matriz[i+1][j-1]: #abajo izquierda
+                        distance = haversine((node[1],node[0]),(node_comp[1], node_comp[0]))
+                        if (distance <= dist/1000.0):
+                            G.add_edge(node, node_comp,weight=float(distance/10))
+    return G
+
+
+
+
+
+
+
+
+
 def Graph(distance=1000):
     dataset = "https://api.bsmsa.eu/ext/api/bsm/gbfs/v2/en/station_information"
     bicing = DataFrame.from_records(
@@ -30,7 +111,6 @@ def Graph(distance=1000):
                             coord1, coord2) / 10))
     return G
 
-
 def print_map(G,filename):
     m = StaticMap(800, 800)
     # print nodes on the map
@@ -44,9 +124,6 @@ def print_map(G,filename):
         m.add_line(line)
     image = m.render()
     image.save(filename)
-
-
-
 
 
 def print_path(path, G, file):

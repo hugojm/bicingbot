@@ -14,8 +14,10 @@ import os
 def start(bot, update, user_data):
     name = update.message.chat.first_name
     bot.send_message(chat_id=update.message.chat_id, text="Hey " + name + "! What can I do for you?")
-    G = d.Graph()
+    G = d.CreateGraph()
     user_data['graph'] = G
+    bot.send_message(chat_id=update.message.chat_id, text="Graph created")
+
 
 def help(bot,update):
     message='These are the commands which can be used: \n\
@@ -36,18 +38,13 @@ def hour_to_min(t):
 
 def graph(bot, update, user_data, args):
     if (args):
-        G = d.Graph(int(args[0]))
-        bot.send_message(chat_id=update.message.chat_id, text="Graph created with distance " + str(args[0])) + "!"
+        G = d.CreateGraph(int(args[0]))
+        bot.send_message(chat_id=update.message.chat_id, text="Graph created with distance " + str(args[0]) + "!")
     else:
-        G = d.Graph()
+        G = d.CreateGraph()
         bot.send_message(chat_id=update.message.chat_id, text="Since no distance was received, the graph by default, which has been created, has distance 1000")
     user_data['graph'] = G
 
-
-
-def hora(bot, update):
-    missatge = str(datetime.datetime.now())
-    bot.send_message(chat_id=update.message.chat_id, text=missatge)
 
 def plotgraph(bot,update,user_data):
     filename = str(update.message.chat.username)+'.png'
@@ -85,17 +82,17 @@ def route(bot,update,args,user_data):
         bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
         t = d.route(user_data['graph'],(user_data['lon'],user_data['lat']),coord2,filename)
         bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
-        os.remove(filename)
         hour,min = hour_to_min(t)
-    if (len(args) > 4):
-        filename = str(update.message.chat.username)+'_path.png'
+        message = "It will take you " + str(hour) +" hour(s) "+ str(min) + " min(s)."
+
+    elif (len(args) > 4):
+        filename = str(update.message.chat.username)+ '_path.png'
         cami = " ".join(args)
         address1, address2 = cami.split(',')
         coord1, coord2 = addressesTOcoordinates(cami)
         bot.send_message(chat_id=update.message.chat_id, text="Computing the shortest path...")
         t = d.route(user_data['graph'],coord1,coord2,filename)
         bot.send_photo(chat_id=update.message.chat_id, photo=open(filename, 'rb'))
-        os.remove(filename)
         hour,min = hour_to_min(t)
         message = "Going from " + address1 + " to"+ address2+ " will take you " + str(hour) +" hour(s) "+ str(min) + " min(s)."
         bot.send_message(chat_id=update.message.chat_id, text=message)
@@ -147,7 +144,6 @@ dispatcher = updater.dispatcher
 # indica que quan el bot rebi la comanda /start s'executi la funció start
 dispatcher.add_handler(CommandHandler('start', start,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('graph', graph,pass_user_data=True,pass_args=True))
-dispatcher.add_handler(CommandHandler('hora', hora))
 dispatcher.add_handler(CommandHandler('plotgraph', plotgraph,pass_user_data=True))
 dispatcher.add_handler(CommandHandler('route', route,pass_user_data=True,pass_args=True))
 dispatcher.add_handler(CommandHandler('nodes', nodes,pass_user_data=True))
