@@ -48,6 +48,24 @@ Give an example
 Explain what these tests test and why
 
 Give an example
+
+
+## How it works?
+
+Well, we have implement an `O(n logn)` algorithm that follows the following pattern:
+1. First of all, we do the bounding box of all the points to create a rectangle that envolves all the nodes.
+2. We divide the bounding box by the distance given in the graph so we have a grill (in fact, it is a matrix)
+3. Then, we sort out the nodes by its coordinates so every node its on his corresponding box.
+4. Now, we have are ready to compare each box with itself and the box below, to the right, below to the right and below to the left. So, we have compare each node with the candidates to have an edge.
+
+### How long it takes?
+
+We have test it the program in many cases. But the problem is that if we have a very low distance, the algorithm creates a lot of boxes so it waste a lot of time. In general cases our algorithm is faster than the quadratic. Here is the comparation:
+![distance = 1000 O(n logn)](/images/2019/05/Captura de pantalla 2019-05-30 a las 22.12.15.png)
+
+![distance = 1000 (quadratic)](/images/2019/05/Captura de pantalla 2019-05-30 a las 22.12.44.png)
+
+
 ## Usage of the program
 That bot has many function that can be easily used following that instruccions:
 
